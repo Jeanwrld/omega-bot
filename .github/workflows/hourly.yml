@@ -32,7 +32,7 @@ jobs:
         run: |
           pip install numpy==1.26.4
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ccxt scikit-learn requests huggingface_hub pandas == 2.2.3
+          pip install ccxt scikit-learn requests huggingface_hub pandas==2.2.3
           pip install https://github.com/twopirllc/pandas-ta/archive/refs/heads/development.zip
           
 
