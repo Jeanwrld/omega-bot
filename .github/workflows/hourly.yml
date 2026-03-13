@@ -32,8 +32,9 @@ jobs:
         run: |
           pip install numpy==1.26.4
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ccxt scikit-learn requests huggingface_hub pandas
-          pip install git+https://github.com/twopirllc/pandas-ta.git@development
+          pip install ccxt scikit-learn requests huggingface_hub 
+          pip install pandas==2.2.3
+          pip install pandas_ta --pre
 
       - name: Run OMEGA signal generator
         env:
