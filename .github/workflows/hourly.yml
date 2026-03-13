@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -32,7 +32,8 @@ jobs:
         run: |
           pip install numpy==1.26.4
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ccxt pandas_ta scikit-learn requests huggingface_hub pandas
+          pip install ccxt scikit-learn requests huggingface_hub pandas
+          pip install git+https://github.com/twopirllc/pandas-ta.git@development
 
       - name: Run OMEGA signal generator
         env:
