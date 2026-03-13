@@ -1,0 +1,6 @@
+numpy==1.26.4
+pandas
+pandas_ta
+scikit-learn
+requests
+huggingface_hub
