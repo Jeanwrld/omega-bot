@@ -1,7 +1,7 @@
 import os, math, time, json, pickle, requests, warnings
 import numpy as np
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta_classic as ta
 import torch
 import torch.nn as nn
 from datetime import datetime, timezone
