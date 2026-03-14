@@ -3,36 +3,18 @@
     "symbol": "USD/JPY",
     "action": "SELL",
     "entry_price": 159.73522,
-    "alloc_usd": 1.2853026390075684,
-    "confidence": 0.5257060527801514,
-    "ts": 1773514460.756152,
-    "datetime_utc": "2026-03-14 18:54"
+    "alloc_usd": 1.2872159481048584,
+    "confidence": 0.5257443189620972,
+    "ts": 1773520825.835384,
+    "datetime_utc": "2026-03-14 20:40"
   },
   {
     "symbol": "USD/CHF",
     "action": "BUY",
     "entry_price": 0.79579,
-    "alloc_usd": 3.0133724212646484,
-    "confidence": 0.560267448425293,
-    "ts": 1773514460.756152,
-    "datetime_utc": "2026-03-14 18:54"
-  },
-  {
-    "symbol": "USD/JPY",
-    "action": "SELL",
-    "entry_price": 159.73522,
-    "alloc_usd": 1.2852251529693604,
-    "confidence": 0.5257045030593872,
-    "ts": 1773516983.826356,
-    "datetime_utc": "2026-03-14 19:36"
-  },
-  {
-    "symbol": "USD/CHF",
-    "action": "BUY",
-    "entry_price": 0.79579,
-    "alloc_usd": 3.014308214187622,
-    "confidence": 0.5602861642837524,
-    "ts": 1773516983.826356,
-    "datetime_utc": "2026-03-14 19:36"
+    "alloc_usd": 3.0220597982406616,
+    "confidence": 0.5604411959648132,
+    "ts": 1773520825.835384,
+    "datetime_utc": "2026-03-14 20:40"
   }
 ]
