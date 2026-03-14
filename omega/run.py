@@ -82,8 +82,8 @@ class OmegaModel(nn.Module):
 # ── Load model
 def load_model():
     from huggingface_hub import hf_hub_download
-    model_path  = hf_hub_download(repo_id=HF_REPO, filename='omega_best.pt')
-    scaler_path = hf_hub_download(repo_id=HF_REPO, filename='scalers.pkl')
+    model_path  = hf_hub_download(repo_id=HF_REPO, filename='omega_best.pt',token=os.environ.get('HF_TOKEN'))
+    scaler_path = hf_hub_download(repo_id=HF_REPO, filename='scalers.pkl', token=os.environ.get('HF_TOKEN'))
     ckpt = torch.load(model_path, map_location=device)
     feature_cols = ckpt['feature_cols']
     model = OmegaModel(num_features=len(feature_cols), **{
