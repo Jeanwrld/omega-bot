@@ -33,13 +33,12 @@ jobs:
           pip install numpy==1.26.4
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install ccxt scikit-learn requests huggingface_hub pandas-ta-classic
-          
-          
 
       - name: Run OMEGA signal generator
         env:
-          POLYGON_KEY: ${{ secrets.POLYGON_KEY }}
-          HF_TOKEN:    ${{ secrets.HF_TOKEN }}
+          POLYGON_KEY:          ${{ secrets.POLYGON_KEY }}
+          HF_TOKEN:             ${{ secrets.HF_TOKEN }}
+          DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
         run: python omega/run.py
 
       - name: Commit updated logs

@@ -13,6 +13,7 @@ warnings.filterwarnings('ignore')
 MARKET_TYPES   = {'crypto': 0, 'stock': 1, 'prediction': 2}
 HF_REPO        = 'sato2ru/omega-v3-trading'
 POLYGON_KEY    = os.environ['POLYGON_KEY']
+DISCORD_WEBHOOK= os.environ['DISCORD_WEBHOOK_FOREX']
 LOG_FILE       = 'signals_log.csv'
 ENTRY_LOG_FILE = 'entry_prices.json'
 
@@ -82,8 +83,8 @@ class OmegaModel(nn.Module):
 # ── Load model
 def load_model():
     from huggingface_hub import hf_hub_download
-    model_path  = hf_hub_download(repo_id=HF_REPO, filename='omega_best.pt',token=os.environ.get('HF_TOKEN'))
-    scaler_path = hf_hub_download(repo_id=HF_REPO, filename='scalers.pkl', token=os.environ.get('HF_TOKEN'))
+    model_path  = hf_hub_download(repo_id=HF_REPO, filename='omega_best.pt', token=os.environ.get('HF_TOKEN'))
+    scaler_path = hf_hub_download(repo_id=HF_REPO, filename='scalers.pkl',   token=os.environ.get('HF_TOKEN'))
     ckpt = torch.load(model_path, map_location=device)
     feature_cols = ckpt['feature_cols']
     model = OmegaModel(num_features=len(feature_cols), **{
@@ -93,8 +94,9 @@ def load_model():
     model.eval()
     with open(scaler_path, 'rb') as f:
         scalers = pickle.load(f)
-    print(f"✅ Model loaded | val_acc={ckpt['val_acc']:.2%}")
-    return model, scalers, feature_cols
+    val_acc = ckpt.get('val_acc', 0.0)
+    print(f"✅ Model loaded | val_acc={val_acc:.2%}")
+    return model, scalers, feature_cols, val_acc
 
 
 # ── Data
@@ -158,8 +160,7 @@ def add_indicators(df):
 # ── Inference
 def kelly_fraction(win_prob):
     if win_prob <= 0.5: return 0.0
-    f = (2 * win_prob - 1)
-    return float(np.clip(f * 0.5, 0, CFG['max_kelly']))
+    return float(np.clip((2 * win_prob - 1) * 0.5, 0, CFG['max_kelly']))
 
 
 @torch.no_grad()
@@ -190,10 +191,10 @@ def get_signal(model, scalers, feature_cols, df, mtype):
     }
 
 
-# ── Outcome checker: fill exit prices for signals logged 1hr ago
+# ── Outcome checker
 def check_outcomes(current_prices):
     if not Path(ENTRY_LOG_FILE).exists():
-        return
+        return []
     with open(ENTRY_LOG_FILE) as f:
         entries = json.load(f)
 
@@ -202,9 +203,8 @@ def check_outcomes(current_prices):
 
     for e in entries:
         age_minutes = (now_ts - e['ts']) / 60
-        if age_minutes >= 55:  # ~1 hour passed
-            symbol = e['symbol']
-            exit_price = current_prices.get(symbol)
+        if age_minutes >= 55:
+            exit_price = current_prices.get(e['symbol'])
             if exit_price:
                 e['exit_price'] = exit_price
                 e['pct_move']   = (exit_price - e['entry_price']) / e['entry_price']
@@ -219,13 +219,11 @@ def check_outcomes(current_prices):
         else:
             remaining.append(e)
 
-    # Append resolved to CSV log
     if resolved:
         log_path = Path(LOG_FILE)
         df_new = pd.DataFrame(resolved)
         if log_path.exists():
-            df_existing = pd.read_csv(log_path)
-            df_out = pd.concat([df_existing, df_new], ignore_index=True)
+            df_out = pd.concat([pd.read_csv(log_path), df_new], ignore_index=True)
         else:
             df_out = df_new
         df_out.to_csv(log_path, index=False)
@@ -237,6 +235,57 @@ def check_outcomes(current_prices):
     with open(ENTRY_LOG_FILE, 'w') as f:
         json.dump(remaining, f)
 
+    return resolved
+
+
+# ── Discord notification
+def send_discord(signals, resolved, now_utc, val_acc):
+    action_icons = {'BUY': '🟢', 'SELL': '🔴', 'HOLD': '⏸️'}
+    market_icons = {'CRYPTO': '🔴', 'STOCK': '📈'}
+
+    lines = [
+        f'📡 **OMEGA v3** | {now_utc.strftime("%Y-%m-%d %H:%M")} UTC | val_acc={val_acc:.2%}',
+        '```',
+        f'{"Mkt":<8} {"Symbol":<12} {"Action":<6} {"↑UP":>6} {"↓DN":>6} {"Conf":>6} {"Kelly":>6} {"$":>6} {"Price":>10}',
+        '─' * 70,
+    ]
+    for s in signals:
+        lines.append(
+            f'{s["market"]:<8} {s["symbol"]:<12} '
+            f'{action_icons[s["action"]]} {s["action"]:<4} '
+            f'{s["prob_up"]:>5.1%} {s["prob_down"]:>5.1%} '
+            f'{s["confidence"]:>5.1%} {s["kelly_f"]:>5.1%} '
+            f'${s["alloc_usd"]:>4.2f} {s["price"]:>10.4f}'
+        )
+    lines.append('─' * 70)
+    actionable = [s for s in signals if s['action'] != 'HOLD']
+    lines.append(f'Actionable : {len(actionable)}/{len(signals)}')
+    lines.append(f'Deploy     : ${sum(s["alloc_usd"] for s in actionable):.2f} / ${CFG["total_capital"]:.2f}')
+    lines.append('```')
+
+    if resolved:
+        lines.append('**Outcomes from last hour:**')
+        lines.append('```')
+        for r in resolved:
+            icon = '✅' if r['correct'] == 'WIN' else '❌'
+            lines.append(
+                f'{icon} {r["symbol"]} {r["action"]} | '
+                f'{r["entry_price"]:.4f} → {r["exit_price"]:.4f} | '
+                f'{r["correct"]} | P&L ${r["pnl"]:.3f}'
+            )
+        wins  = sum(1 for r in resolved if r['correct'] == 'WIN')
+        total = len(resolved)
+        lines.append(f'Win rate: {wins}/{total} ({wins/total:.0%})')
+        lines.append('```')
+
+    payload = {'content': '\n'.join(lines), 'username': 'OMEGA v3'}
+    try:
+        r = requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
+        r.raise_for_status()
+        print('✅ Discord notification sent')
+    except Exception as e:
+        print(f'⚠️ Discord failed: {e}')
+
 
 # ── Main
 def main():
@@ -245,9 +294,9 @@ def main():
     print(f'  📡 OMEGA v3 | {now_utc.strftime("%Y-%m-%d %H:%M")} UTC')
     print(f'{"="*65}')
 
-    model, scalers, feature_cols = load_model()
+    model, scalers, feature_cols, val_acc = load_model()
 
-    signals      = []
+    signals        = []
     current_prices = {}
 
     # Crypto
@@ -285,8 +334,8 @@ def main():
         except Exception as e:
             print(f'  ⚠️ {ticker}: {e}')
 
-    # Check outcomes for signals from ~1hr ago
-    check_outcomes(current_prices)
+    # Check outcomes
+    resolved = check_outcomes(current_prices)
 
     # Print table
     action_icons = {'BUY': '🟢', 'SELL': '🔴', 'HOLD': '⏸️ '}
@@ -305,13 +354,8 @@ def main():
     print(f'  Actionable: {len(actionable)}/{len(signals)}')
     print(f'  Deploy: ${sum(s["alloc_usd"] for s in actionable):.2f} / ${CFG["total_capital"]:.2f}')
 
-    # Save entry prices for BUY/SELL signals to check in 1hr
-    if Path(ENTRY_LOG_FILE).exists():
-        with open(ENTRY_LOG_FILE) as f:
-            existing = json.load(f)
-    else:
-        existing = []
-
+    # Save entry prices
+    existing = json.loads(Path(ENTRY_LOG_FILE).read_text()) if Path(ENTRY_LOG_FILE).exists() else []
     new_entries = [{'symbol': s['symbol'], 'action': s['action'],
                     'entry_price': s['price'], 'alloc_usd': s['alloc_usd'],
                     'confidence': s['confidence'], 'ts': s['ts'],
@@ -319,9 +363,11 @@ def main():
                    for s in actionable]
     with open(ENTRY_LOG_FILE, 'w') as f:
         json.dump(existing + new_entries, f, indent=2)
-
     if new_entries:
         print(f'  📝 Logged {len(new_entries)} entry prices → outcomes checked next run')
+
+    # Discord
+    send_discord(signals, resolved, now_utc, val_acc)
 
     print(f'\n✅ Done | {now_utc.strftime("%Y-%m-%d %H:%M")} UTC')
 
