@@ -1,0 +1,50 @@
+name: OMEGA Forex Hourly Signals
+
+on:
+  schedule:
+    - cron: '5 * * * *'   # 5 minutes after the hour (gives v3 time to finish first)
+  workflow_dispatch:        # manual trigger button in GitHub UI
+
+jobs:
+  run-signals:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # needed to commit log CSV back to repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-omega-forex
+
+      - name: Install dependencies
+        run: |
+          pip install numpy==1.26.4
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install scikit-learn requests huggingface_hub pandas-ta-classic
+
+      - name: Run OMEGA Forex signal generator
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          HF_TOKEN:            ${{ secrets.HF_TOKEN }}
+          DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+        run: python omega_forex/run.py
+
+      - name: Commit updated logs
+        run: |
+          git config user.name  "OMEGA Forex Bot"
+          git config user.email "omega-forex@noreply.github.com"
+          git add forex_signals_log.csv forex_entry_prices.json || true
+          git diff --staged --quiet || git commit -m "📡 Forex Signals $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git push
