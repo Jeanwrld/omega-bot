@@ -116,7 +116,7 @@ def fetch_crypto(pair):
 
 def fetch_stock(ticker):
     from datetime import timedelta
-    start = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+    start = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%d')
     end   = datetime.now().strftime('%Y-%m-%d')
     url = (f'https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/hour'
            f'/{start}/{end}?adjusted=true&sort=asc&limit=200&apikey={POLYGON_KEY}')
