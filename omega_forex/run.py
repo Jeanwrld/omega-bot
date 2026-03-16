@@ -101,6 +101,7 @@ def load_model():
     print(f'   pairs      : {list(scalers.keys())}')
     print(f'   features   : {len(feature_cols)}')
     print(f'   thresholds : {pair_thresholds}')
+    pair_thresholds['USD/JPY'] = 0.55
 
     return model, scalers, feature_cols, temperature, pair_thresholds
 
