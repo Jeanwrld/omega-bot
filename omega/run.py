@@ -335,6 +335,7 @@ def main():
     for ticker in CFG['stock_tickers']:
         try:
             df = fetch_stock(ticker)
+            print(f'  {ticker}: {len(df)} bars')
             if df.empty or len(df) < CFG['seq_len'] + 50: continue
             df = add_indicators(df)
             price = float(df['close'].iloc[-1])
