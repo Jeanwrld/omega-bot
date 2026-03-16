@@ -307,6 +307,8 @@ def main():
             df = add_indicators(df)
             price = float(df['close'].iloc[-1])
             current_prices[pair] = price
+            print(f'  Features present: {[c for c in feature_cols if c in df.columns]}')
+            print(f'  Features missing: {[c for c in feature_cols if c not in df.columns]}')
             s = get_signal(model, scalers, feature_cols, df, MARKET_TYPES['crypto'])
             alloc = CFG['total_capital'] * CFG['crypto_alloc'] * s['kelly_f']
             signals.append({**s, 'market': 'CRYPTO', 'symbol': pair,
@@ -332,7 +334,7 @@ def main():
                              'datetime_utc': now_utc.strftime('%Y-%m-%d %H:%M')})
             time.sleep(15)
         except Exception as e:
-            print(f'  ⚠️ {ticker}: {e}')
+            print(f'  ⚠️ {ticker}: {type(e).__name__}: {e}')
 
     # Check outcomes
     resolved = check_outcomes(current_prices)
