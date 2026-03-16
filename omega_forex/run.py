@@ -345,7 +345,7 @@ def main():
         try:
             print(f'\n  Fetching {pair} ...', end=' ')
             df = fetch_forex(pair, n_bars=100)
-            if len(df) < CFG['seq_len'] + 50:
+            if len(df) < CFG['seq_len'] + 30:
                 print(f'not enough bars ({len(df)}), skipping')
                 continue
             df = build_features(df)
