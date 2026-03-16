@@ -179,7 +179,12 @@ def get_signal(model, scalers, feature_cols, df, mtype):
             feat_df[col] = scalers[col].transform(feat_df[[col]])
     for c in feature_cols:
         if c not in feat_df.columns:
-            feat_df[c] = 0.0
+            if c == 'ADXR_14_2':
+                feat_df[c] = feat_df.get('ADX_14', pd.Series([25.0]*len(feat_df))).values
+            elif c == 'STOCHh_14_3_3':
+                feat_df[c] = feat_df.get('STOCHk_14_3_3', pd.Series([50.0]*len(feat_df))).values
+            else:
+                feat_df[c] = 0.0
     feat_df = feat_df[feature_cols]
     window = feat_df.iloc[-CFG['seq_len']:].values
     x  = torch.tensor(window, dtype=torch.float32).unsqueeze(0)
@@ -311,7 +316,7 @@ def main():
     for pair in CFG['crypto_pairs']:
         try:
             df = fetch_crypto(pair)
-            if df.empty or len(df) < CFG['seq_len'] + 50: continue
+            if df.empty or len(df) < CFG['seq_len'] + 10: continue
             df = add_indicators(df)
             price = float(df['close'].iloc[-1])
             current_prices[pair] = price
