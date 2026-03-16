@@ -344,7 +344,7 @@ def main():
     for pair in CFG['pairs']:
         try:
             print(f'\n  Fetching {pair} ...', end=' ')
-            df = fetch_forex(pair, n_bars=100)
+            df = fetch_forex(pair, n_bars=500)
             if len(df) < CFG['seq_len'] + 10:
                 print(f'not enough bars ({len(df)}), skipping')
                 continue
