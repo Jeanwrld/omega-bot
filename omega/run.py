@@ -153,6 +153,14 @@ def add_indicators(df):
     df['lower_wick'] = (df[['open','close']].min(axis=1) - df['low']) / (df['open'] + 1e-9)
     df['hl_range']   = (df['high'] - df['low']) / (df['open'] + 1e-9)
     df['volume']     = np.log1p(df['volume'])
+    COLUMN_REMAP = {
+    'BBL_20_2.0': 'BBL_20_2.0_2.0',
+    'BBM_20_2.0': 'BBM_20_2.0_2.0',
+    'BBU_20_2.0': 'BBU_20_2.0_2.0',
+    'BBB_20_2.0': 'BBB_20_2.0_2.0',
+    'BBP_20_2.0': 'BBP_20_2.0_2.0',
+     }
+    df.rename(columns=COLUMN_REMAP, inplace=True)
     df.dropna(inplace=True)
     return df
 
