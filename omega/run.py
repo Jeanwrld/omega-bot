@@ -118,7 +118,7 @@ def fetch_crypto(pair):
 
 def fetch_stock(ticker):
     from datetime import timedelta
-    start = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%d')
+    start = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
     end   = datetime.now().strftime('%Y-%m-%d')
     url = (f'https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/hour'
            f'/{start}/{end}?adjusted=true&sort=asc&limit=200&apikey={POLYGON_KEY}')
@@ -180,9 +180,9 @@ def get_signal(model, scalers, feature_cols, df, mtype):
     for c in feature_cols:
         if c not in feat_df.columns:
             if c == 'ADXR_14_2':
-                feat_df[c] = feat_df.get('ADX_14', pd.Series([25.0]*len(feat_df))).values
+                feat_df[c] = feat_df['ADX_14'].values if 'ADX_14' in feat_df.columns else 25.0
             elif c == 'STOCHh_14_3_3':
-                feat_df[c] = feat_df.get('STOCHk_14_3_3', pd.Series([50.0]*len(feat_df))).values
+                feat_df[c] = feat_df['STOCHk_14_3_3'].values if 'STOCHk_14_3_3' in feat_df.columns else 50.0
             else:
                 feat_df[c] = 0.0
     feat_df = feat_df[feature_cols]
