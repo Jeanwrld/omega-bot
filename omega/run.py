@@ -105,6 +105,7 @@ def fetch_crypto(pair):
     r = requests.get(
         'https://min-api.cryptocompare.com/data/v2/histohour',
         params={'fsym': symbol, 'tsym': 'USD', 'limit': 100}, timeout=15).json()
+    
     data = [c for c in r.get('Data', {}).get('Data', []) if c['volumefrom'] > 0]
     if not data: return pd.DataFrame()
     df = pd.DataFrame(data)
@@ -125,6 +126,9 @@ def fetch_stock(ticker):
     all_results = []
     while url:
         r = requests.get(url, timeout=15).json()
+        if r.get('status') == 'ERROR' or 'results' not in r:
+            print(f'  ⚠️ {ticker}: Polygon error — {r.get("error", r)}')
+            break
         all_results.extend(r.get('results', []))
         url = r.get('next_url')
         if url: url += f'&apikey={POLYGON_KEY}'
