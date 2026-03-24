@@ -2,10 +2,10 @@
   {
     "symbol": "USD/CHF",
     "action": "SELL",
-    "entry_price": 0.79084,
-    "alloc_usd": 2.5830745697021484,
-    "confidence": 0.551661491394043,
-    "ts": 1774365237.455669,
-    "datetime_utc": "2026-03-24 15:13"
+    "entry_price": 0.79221,
+    "alloc_usd": 2.11256742477417,
+    "confidence": 0.5422513484954834,
+    "ts": 1774372355.676846,
+    "datetime_utc": "2026-03-24 17:12"
   }
 ]
