@@ -108,7 +108,7 @@ class OmegaForex(nn.Module):
         return self.classifier(x[:, -1, :])
 
 
-class OmegaForex(nn.Module):
+class OmegaForexBase(nn.Module):
     def __init__(self, n_features, d_model=64, n_heads=4, n_layers=3,
                  dropout=0.1, seq_len=24):
         super().__init__()
@@ -128,6 +128,46 @@ class OmegaForex(nn.Module):
         x = self.encoder(x)
         return self.classifier(x[:, -1, :])
 
+
+class OmegaForex(nn.Module):
+    def __init__(self, n_features, d_model=64, n_heads=4, n_layers=3,
+                 dropout=0.1, seq_len=24, n_regime=5):
+        super().__init__()
+        self.n_regime = n_regime
+
+        self.conv_block = nn.Sequential(
+            nn.Conv1d(n_features, d_model, kernel_size=3, padding=1),
+            nn.GELU(),
+            nn.BatchNorm1d(d_model),
+            nn.Conv1d(d_model, d_model, kernel_size=5, padding=2),
+            nn.GELU(),
+            nn.BatchNorm1d(d_model),
+            nn.Dropout(dropout),
+        )
+        self.regime_gate = RegimeGate(d_model, n_regime=n_regime, dropout=dropout)
+        self.pos_enc = PositionalEncoding(d_model, max_len=seq_len + 8, dropout=dropout)
+
+        enc_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_model * 4,
+            dropout=dropout, batch_first=True, norm_first=True)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=n_layers)
+
+        self.classifier = nn.Sequential(
+            nn.LayerNorm(d_model), nn.Linear(d_model, 32),
+            nn.GELU(), nn.Dropout(dropout), nn.Linear(32, 2))
+
+    def forward(self, x):
+        regime_idx = [feature_cols_global.index(c) for c in REGIME_COLS]
+        regime = x[:, :, regime_idx]
+
+        x = x.transpose(1, 2)
+        x = self.conv_block(x)
+        x = x.transpose(1, 2)
+
+        x = self.regime_gate(x, regime)
+        x = self.pos_enc(x)
+        x = self.encoder(x)
+        return self.classifier(x[:, -1, :])
 
 # ── Load model from HuggingFace ───────────────────────────────────────────────
 def load_model():
