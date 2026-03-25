@@ -48,6 +48,66 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x + self.pe[:, :x.size(1)])
 
 
+class RegimeGate(nn.Module):
+    def __init__(self, d_model, n_regime=5, dropout=0.1):
+        super().__init__()
+        self.regime_proj = nn.Sequential(
+            nn.Linear(n_regime, d_model // 2),
+            nn.GELU(),
+            nn.Linear(d_model // 2, d_model),
+            nn.Sigmoid(),
+        )
+        self.norm = nn.LayerNorm(d_model)
+
+    def forward(self, x, regime):
+        gate = self.regime_proj(regime)
+        return self.norm(x * gate)
+
+
+REGIME_COLS = ['atr_rank', 'adx_norm', 'vol_regime', 'trend_regime', 'regime_bars']
+
+
+class OmegaForex(nn.Module):
+    def __init__(self, n_features, d_model=64, n_heads=4, n_layers=3,
+                 dropout=0.1, seq_len=24, n_regime=5):
+        super().__init__()
+        self.n_regime = n_regime
+
+        self.conv_block = nn.Sequential(
+            nn.Conv1d(n_features, d_model, kernel_size=3, padding=1),
+            nn.GELU(),
+            nn.BatchNorm1d(d_model),
+            nn.Conv1d(d_model, d_model, kernel_size=5, padding=2),
+            nn.GELU(),
+            nn.BatchNorm1d(d_model),
+            nn.Dropout(dropout),
+        )
+        self.regime_gate = RegimeGate(d_model, n_regime=n_regime, dropout=dropout)
+        self.pos_enc = PositionalEncoding(d_model, max_len=seq_len + 8, dropout=dropout)
+
+        enc_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=n_heads, dim_feedforward=d_model * 4,
+            dropout=dropout, batch_first=True, norm_first=True)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=n_layers)
+
+        self.classifier = nn.Sequential(
+            nn.LayerNorm(d_model), nn.Linear(d_model, 32),
+            nn.GELU(), nn.Dropout(dropout), nn.Linear(32, 2))
+
+    def forward(self, x):
+        regime_idx = [feature_cols_global.index(c) for c in REGIME_COLS]
+        regime = x[:, :, regime_idx]
+
+        x = x.transpose(1, 2)
+        x = self.conv_block(x)
+        x = x.transpose(1, 2)
+
+        x = self.regime_gate(x, regime)
+        x = self.pos_enc(x)
+        x = self.encoder(x)
+        return self.classifier(x[:, -1, :])
+
+
 class OmegaForex(nn.Module):
     def __init__(self, n_features, d_model=64, n_heads=4, n_layers=3,
                  dropout=0.1, seq_len=24):
@@ -84,12 +144,14 @@ def load_model():
     feature_cols = cfg['feature_cols']
     pair_thresholds = cfg.get('test_metrics', {}).get('pair_thresholds', {})
     temperature     = cfg.get('test_metrics', {}).get('temperature', 1.0)
+    feature_cols_global = feature_cols
 
     model = OmegaForex(
         n_features=len(feature_cols),
         d_model=cfg['d_model'], n_heads=cfg['n_heads'],
         n_layers=cfg['n_layers'], dropout=cfg['dropout'],
         seq_len=cfg['seq_len'],
+        n_regime=cfg.get( 'n_regime', 5),
     ).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
@@ -181,6 +243,11 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     d['wick_up']  = (d['high'] - d[['open', 'close']].max(axis=1)) / (d['high'] - d['low'] + 1e-10)
     d['wick_dn']  = (d[['open', 'close']].min(axis=1) - d['low'])  / (d['high'] - d['low'] + 1e-10)
     d['hl_range'] = (d['high'] - d['low']) / d['close']
+
+    d['session'] = df['datetime'].dt.hour // 6
+    d['lag_close_1'] = d['close'].shift(1)
+    d['lag_close_2'] = d['close'].shift(2)
+    d['regime'] = df['datetime'].dt.hour // 6
 
     return d.dropna().reset_index(drop=True)
 

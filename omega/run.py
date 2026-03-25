@@ -33,6 +33,14 @@ device = torch.device('cpu')
 # ── Model
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len=200, dropout=0.1):
+        """
+        Initializes the PositionalEncoding module.
+
+        Args:
+            d_model (int): The number of features in the input.
+            max_len (int, optional): The maximum length of the sequence. Defaults to 200.
+            dropout (float, optional): The dropout rate. Defaults to 0.1.
+        """
         super().__init__()
         self.dropout = nn.Dropout(dropout)
         pe  = torch.zeros(max_len, d_model)
@@ -42,12 +50,33 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(pos * div)
         self.register_buffer('pe', pe.unsqueeze(0))
     def forward(self, x):
+        """
+        Forward pass for the PositionalEncoding module.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor after applying the positional encoding.
+        """
         return self.dropout(x + self.pe[:, :x.size(1)])
 
 
 class OmegaModel(nn.Module):
     def __init__(self, num_features, d_model=64, nhead=4,
                  num_layers=3, dropout=0.3, num_market_types=3, num_classes=2):
+        """
+        Initializes the OmegaModel module.
+
+        Args:
+            num_features (int): The number of features in the input.
+            d_model (int, optional): The number of features in the input. Defaults to 64.
+            nhead (int, optional): The number of attention heads. Defaults to 4.
+            num_layers (int, optional): The number of encoder layers. Defaults to 3.
+            dropout (float, optional): The dropout rate. Defaults to 0.3.
+            num_market_types (int, optional): The number of market types. Defaults to 3.
+            num_classes (int, optional): The number of classes. Defaults to 2.
+        """
         super().__init__()
         self.market_emb = nn.Embedding(num_market_types, d_model)
         self.input_proj = nn.Sequential(
@@ -101,6 +130,19 @@ def load_model():
 
 # ── Data
 def fetch_crypto(pair):
+    """
+    Fetch recent 1H bars from CryptoCompare for a given crypto pair.
+    
+    Parameters
+    ----------
+    pair : str
+        Crypto pair (e.g. BTC/USD)
+    
+    Returns
+    -------
+    df : pd.DataFrame
+        Clean OHLC DataFrame with 'market_type' and 'symbol' columns
+    """
     symbol = pair.split('/')[0]
     r = requests.get(
         'https://min-api.cryptocompare.com/data/v2/histohour',
@@ -144,6 +186,19 @@ def fetch_stock(ticker):
 
 
 def add_indicators(df):
+    """
+    Adds technical indicators to a given DataFrame.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with columns 'open', 'high', 'low', 'close', 'volume'
+
+    Returns
+    -------
+    df : pd.DataFrame
+        DataFrame with the same columns as the input, plus additional technical indicators.
+    """
     df = df.copy()
     df.ta.ema(length=9, append=True);  df.ta.ema(length=21, append=True)
     df.ta.ema(length=50, append=True); df.ta.adx(append=True)
@@ -171,6 +226,25 @@ def add_indicators(df):
 
 # ── Inference
 def kelly_fraction(win_prob):
+    """
+    Compute the Kelly fraction for a given win probability.
+
+    Parameters
+    ----------
+    win_prob : float
+        Win probability, between 0 and 1.
+
+    Returns
+    -------
+    float
+        Kelly fraction, between 0 and CFG['max_kelly'].
+
+    Notes
+    -----
+    The Kelly fraction is a simple fraction of the maximum possible gain
+    to the risk of ruin. It is calculated as (2 * win_prob - 1) * 0.5,
+    and is then clipped to be between 0 and CFG['max_kelly'].
+    """
     if win_prob <= 0.5: return 0.0
     return float(np.clip((2 * win_prob - 1) * 0.5, 0, CFG['max_kelly']))
 
@@ -257,6 +331,24 @@ def check_outcomes(current_prices):
 
 # ── Discord notification
 def send_discord(signals, resolved, now_utc, val_acc):
+    """
+    Send a Discord notification about the signals and outcomes.
+
+    Parameters
+    ----------
+    signals : list
+        List of signals from the model.
+    resolved : list
+        List of resolved outcomes from the previous hour.
+    now_utc : datetime
+        Current UTC datetime.
+    val_acc : float
+        Validation accuracy of the model.
+
+    Returns
+    -------
+    None
+    """
     action_icons = {'BUY': '🟢', 'SELL': '🔴', 'HOLD': '⏸️'}
     market_icons = {'CRYPTO': '🔴', 'STOCK': '📈'}
 
