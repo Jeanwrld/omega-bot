@@ -16,7 +16,7 @@ Signal flow:
  11. git commit + pull rebase + push
 """
 
-import os, json, time, pickle, math, subprocess
+import os, json, time, pickle, math, subprocess, warnings
 import numpy as np
 import pandas as pd
 import pandas_ta_classic as ta  # NOT pandas_ta
@@ -25,6 +25,11 @@ import torch
 import torch.nn as nn
 from huggingface_hub import hf_hub_download
 from datetime import datetime, timezone
+
+# Suppress harmless warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*enable_nested_tensor.*")
+warnings.filterwarnings("ignore", category=UserWarning, message=".*InconsistentVersionWarning.*")
+warnings.filterwarnings("ignore", message=".*sklearn.*")
 
 # ── Constants ────────────────────────────────────────────────────────────────
 HF_REPO           = "sato2ru/omega-forex"
@@ -376,10 +381,22 @@ def kelly_size(confidence, max_size=0.20):
 # ── Entry / outcome tracking ──────────────────────────────────────────────────
 
 def load_entry_prices():
-    if os.path.exists(ENTRY_PRICES_FILE):
-        with open(ENTRY_PRICES_FILE) as f:
-            return json.load(f)
-    return {}
+    if not os.path.exists(ENTRY_PRICES_FILE):
+        return {}
+    with open(ENTRY_PRICES_FILE) as f:
+        data = json.load(f)
+    # v1 run.py saved this as a list — migrate to dict on first read
+    if isinstance(data, list):
+        print(f"  Migrating {ENTRY_PRICES_FILE} from list (v1) to dict (v2)...")
+        migrated = {}
+        for i, entry in enumerate(data):
+            if isinstance(entry, dict) and "pair" in entry:
+                ts = entry.get("datetime", f"unknown_{i}").replace(" ", "").replace("-", "").replace(":", "")
+                key = f"{entry['pair'].replace('/', '')}_{ts}"
+                migrated[key] = entry
+        save_entry_prices(migrated)
+        return migrated
+    return data
 
 
 def save_entry_prices(entries):
