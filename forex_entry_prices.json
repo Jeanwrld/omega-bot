@@ -1,14 +1,14 @@
 {
-  "AUDUSD_20260326_2342": {
+  "AUDUSD_20260327_0308": {
     "pair": "AUD/USD",
     "signal": "BUY",
-    "prob_up": 0.6022,
-    "prob_down": 0.3978,
-    "confidence": 0.6022,
-    "entry_price": 0.68939,
-    "datetime": "2026-03-26 23:00",
+    "prob_up": 0.5789,
+    "prob_down": 0.4211,
+    "confidence": 0.5789,
+    "entry_price": 0.68921,
+    "datetime": "2026-03-27 03:00",
     "threshold": 0.56,
     "regime": "LV-TREND",
-    "size": 0.1022
+    "size": 0.0789
   }
 }
