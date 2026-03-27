@@ -7,6 +7,8 @@ import torch.nn as nn
 from datetime import datetime, timezone
 from pathlib import Path
 
+
+
 warnings.filterwarnings('ignore')
 
 # ── Constants
@@ -126,6 +128,9 @@ def load_model():
     val_acc = ckpt.get('val_acc', 0.0)
     print(f"✅ Model loaded | val_acc={val_acc:.2%}")
     return model, scalers, feature_cols, val_acc
+
+print(f"Scaler keys sample: {list(scalers.keys())[:5]}")
+print(f"Feature cols sample: {feature_cols[:5]}")
 
 
 # ── Data
