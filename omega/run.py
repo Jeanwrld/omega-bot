@@ -167,12 +167,14 @@ def fetch_crypto(pair):
 
 def fetch_stock(ticker):
     from datetime import timedelta
-    start = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+    start = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')  # was 30
     end   = datetime.now().strftime('%Y-%m-%d')
     url = (f'https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/hour'
            f'/{start}/{end}?adjusted=true&sort=asc&limit=200&apikey={POLYGON_KEY}')
     all_results = []
-    while url:
+    max_pages = 3  # hard cap — 3 × 200 = 600 bars, way more than enough
+    page = 0
+    while url and page < max_pages:
         r = requests.get(url, timeout=15).json()
         if r.get('status') == 'ERROR' or 'results' not in r:
             print(f'  ⚠️ {ticker}: Polygon error — {r.get("error", r)}')
@@ -181,7 +183,8 @@ def fetch_stock(ticker):
         next_url = r.get('next_url')
         if next_url:
             url = next_url + f'&apikey={POLYGON_KEY}'
-            time.sleep(15)  # free tier: 5 req/min = 12s minimum, 15s to be safe
+            page += 1
+            time.sleep(13)
         else:
             url = None
     if not all_results:
@@ -470,10 +473,10 @@ def main():
                             'price': price, 'alloc_usd': alloc,
                             'ts': now_utc.timestamp(),
                             'datetime_utc': now_utc.strftime('%Y-%m-%d %H:%M')})
-            time.sleep(20)  # was 15 — free tier needs more breathing room
+            time.sleep(5)  # was 15 — free tier needs more breathing room
         except Exception as e:
             print(f'  ⚠️ {ticker}: {type(e).__name__}: {e}')
-            time.sleep(20)  # wait even on exception
+            time.sleep(5)  # wait even on exception
 
     # Check outcomes
     resolved = check_outcomes(current_prices)
