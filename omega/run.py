@@ -178,10 +178,14 @@ def fetch_stock(ticker):
             print(f'  ⚠️ {ticker}: Polygon error — {r.get("error", r)}')
             break
         all_results.extend(r.get('results', []))
-        url = r.get('next_url')
-        if url: url += f'&apikey={POLYGON_KEY}'
-        time.sleep(0.2)
-    if not all_results: return pd.DataFrame()
+        next_url = r.get('next_url')
+        if next_url:
+            url = next_url + f'&apikey={POLYGON_KEY}'
+            time.sleep(15)  # free tier: 5 req/min = 12s minimum, 15s to be safe
+        else:
+            url = None
+    if not all_results:
+        return pd.DataFrame()
     df = pd.DataFrame(all_results)
     df.index = pd.to_datetime(df['t'], unit='ms')
     df = df.rename(columns={'o':'open','h':'high','l':'low','c':'close','v':'volume'})
@@ -257,9 +261,16 @@ def kelly_fraction(win_prob):
 
 @torch.no_grad()
 def get_signal(model, scalers, feature_cols, df, mtype):
+    RAW_PRICE_COLS = {
+        'open', 'high', 'low', 'close',
+        'BBL_20_2.0_2.0', 'BBM_20_2.0_2.0', 'BBU_20_2.0_2.0',
+        'ATRr_14'
+    }
     feat_df = df[[c for c in feature_cols if c in df.columns]].copy()
     for col in feat_df.columns:
-        if col in scalers:
+        if col in RAW_PRICE_COLS:
+            feat_df[col] = 0.0  # out-of-distribution at current price levels
+        elif col in scalers:
             feat_df[col] = scalers[col].transform(feat_df[[col]])
     for c in feature_cols:
         if c not in feat_df.columns:
@@ -270,6 +281,10 @@ def get_signal(model, scalers, feature_cols, df, mtype):
             else:
                 feat_df[c] = 0.0
     feat_df = feat_df[feature_cols]
+
+    # Debug — remove after confirming signals fire
+    print(f"  scaled stats: mean={feat_df.values.mean():.3f} std={feat_df.values.std():.3f} max={feat_df.values.max():.3f} min={feat_df.values.min():.3f}")
+
     window = feat_df.iloc[-CFG['seq_len']:].values
     x  = torch.tensor(window, dtype=torch.float32).unsqueeze(0)
     mt = torch.tensor([mtype], dtype=torch.long)
@@ -277,6 +292,9 @@ def get_signal(model, scalers, feature_cols, df, mtype):
     probs = torch.softmax(out['direction'], dim=-1)[0].numpy()
     conf  = float(probs.max())
     cls   = int(probs.argmax())
+
+    print(f"  probs: UP={probs[1]:.4f} DOWN={probs[0]:.4f} conf={conf:.4f}")
+
     action = 'HOLD'
     if conf >= CFG['conf_threshold']:
         action = 'BUY' if cls == 1 else 'SELL'
@@ -434,23 +452,28 @@ def main():
             print(f'  ⚠️ {pair}: {e}')
 
     # Stocks
+   # Stocks
     for ticker in CFG['stock_tickers']:
         try:
             df = fetch_stock(ticker)
             print(f'  {ticker}: {len(df)} bars')
-            if df.empty or len(df) < CFG['seq_len'] + 50: continue
+            if df.empty or len(df) < CFG['seq_len'] + 50:
+                print(f'  ⚠️ {ticker}: insufficient bars ({len(df)}) — skipping')
+                time.sleep(20)  # still wait before next ticker even on skip
+                continue
             df = add_indicators(df)
             price = float(df['close'].iloc[-1])
             current_prices[ticker] = price
             s = get_signal(model, scalers, feature_cols, df, MARKET_TYPES['stock'])
             alloc = CFG['total_capital'] * CFG['stock_alloc'] * s['kelly_f']
             signals.append({**s, 'market': 'STOCK', 'symbol': ticker,
-                             'price': price, 'alloc_usd': alloc,
-                             'ts': now_utc.timestamp(),
-                             'datetime_utc': now_utc.strftime('%Y-%m-%d %H:%M')})
-            time.sleep(15)
+                            'price': price, 'alloc_usd': alloc,
+                            'ts': now_utc.timestamp(),
+                            'datetime_utc': now_utc.strftime('%Y-%m-%d %H:%M')})
+            time.sleep(20)  # was 15 — free tier needs more breathing room
         except Exception as e:
             print(f'  ⚠️ {ticker}: {type(e).__name__}: {e}')
+            time.sleep(20)  # wait even on exception
 
     # Check outcomes
     resolved = check_outcomes(current_prices)
