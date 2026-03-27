@@ -34,7 +34,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*InconsistentV
 warnings.filterwarnings("ignore", message=".*sklearn.*")
 
 # ── Constants ────────────────────────────────────────────────────────────────
-HF_REPO           = "sato2ru/omega-forex"
+HF_REPO           = "sato2ru/omega-forex-v3"
 ENTRY_PRICES_FILE = "forex_entry_prices.json"
 SIGNALS_LOG_FILE  = "forex_signals_log.csv"
 TWELVE_API_KEY    = os.environ["TWELVE_DATA_API_KEY"]

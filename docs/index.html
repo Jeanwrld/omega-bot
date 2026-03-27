@@ -262,20 +262,20 @@ async function fetchCSV(url) {
 
 function computeStats(rows) {
   if (!rows.length) return null;
-  const wins   = rows.filter(r => r.correct==='WIN').length;
-  const losses = rows.filter(r => r.correct==='LOSS').length;
+  const wins   = rows.filter(r => r.outcome==='WIN').length;
+  const losses = rows.filter(r => r.outcome==='LOSS').length;
   const total  = wins + losses;
   const pnl    = rows.reduce((s,r) => s + parseFloat(r.pnl||0), 0);
-  const returns = rows.map(r => parseFloat(r.pnl||0) / Math.max(parseFloat(r.alloc_usd||1), 0.001));
+  const returns = rows.map(r => parseFloat(r.pnl_pct||0) / Math.max(parseFloat(r.size||0.05), 0.001));
   const mean   = returns.reduce((a,b)=>a+b,0) / (returns.length||1);
   const std    = Math.sqrt(returns.reduce((a,b)=>a+(b-mean)**2,0) / (returns.length||1));
   const sharpe = std > 0 ? (mean/std)*Math.sqrt(24*365) : 0;
   let cum = 0;
   const cumSeries = rows.map(r => { cum += parseFloat(r.pnl||0); return parseFloat(cum.toFixed(4)); });
-  const labels    = rows.map(r => r.datetime_utc || r.datetime || '');
+  const labels    = rows.map(r => r.datetime ||  '');
   const byPair = {};
   rows.forEach(r => {
-    const k = r.symbol;
+    const k = r.pair;
     if (!byPair[k]) byPair[k] = { wins:0, total:0, pnl:0 };
     byPair[k].total++;
     if (r.correct==='WIN') byPair[k].wins++;
@@ -355,17 +355,17 @@ function renderCharts(stats, prefix) {
 function renderTable(rows, prefix) {
   const tbody = document.getElementById(`${prefix}-table`);
   tbody.innerHTML = [...rows].reverse().map(r => {
-    const isWin  = r.correct==='WIN';
-    const pnl    = parseFloat(r.pnl||0);
-    const move   = parseFloat(r.pct_move||0);
+    const isWin  = r.outcome==='WIN';
+    const pnl    = parseFloat(r.pnl_pct||0);
+    const move   = parseFloat(r.pnl_pct||0);
     const conf   = parseFloat(r.confidence||0);
-    const action = (r.action||'').toUpperCase();
+    const action = (r.signal||'').toUpperCase();
     const entry  = parseFloat(r.entry_price||0);
     const exit   = parseFloat(r.exit_price||0);
     const dp     = entry<10?5:entry<1000?4:2;
     return `<tr>
-      <td>${r.datetime_utc||r.datetime||'—'}</td>
-      <td>${r.symbol||'—'}</td>
+      <td>${r.datetime||'—'}</td>
+      <td>${r.pair||'—'}</td>
       <td><span class="badge badge-${action.toLowerCase()}">${action}</span></td>
       <td>${entry.toFixed(dp)}</td>
       <td>${exit.toFixed(dp)}</td>
@@ -388,7 +388,7 @@ async function loadData(csvUrl, prefix) {
     renderCharts(stats, prefix);
     renderTable(rows, prefix);
     const latest = rows[rows.length-1];
-    document.getElementById('last-updated').textContent = `Last signal: ${latest.datetime_utc||latest.datetime||'unknown'}`;
+    document.getElementById('last-updated').textContent = `Last signal: ${latest.datetime||'unknown'}`;
   } catch(e) {
     document.getElementById(`${prefix}-loading`).style.display = 'none';
     document.getElementById(`${prefix}-empty`).style.display = 'block';
