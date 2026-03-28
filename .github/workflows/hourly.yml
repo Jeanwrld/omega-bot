@@ -1,15 +1,15 @@
-name: OMEGA v3 Hourly Signals
+name: OMEGA v7 Hourly Signals
 
 on:
   schedule:
-    - cron: '0 * * * *'   # every hour on the hour
-  workflow_dispatch:        # manual trigger button in GitHub UI
+    - cron: '10 * * * *'  # every hour at :10 (after v3 :00 and Forex :05)
+  workflow_dispatch:       # manual trigger button in GitHub UI
 
 jobs:
   run-signals:
     runs-on: ubuntu-latest
     permissions:
-      contents: write       # needed to commit the log CSV back to repo
+      contents: write      # needed to commit log CSV + entry JSON back to repo
 
     steps:
       - name: Checkout repo
@@ -26,25 +26,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-omega
+          key: ${{ runner.os }}-pip-omega-v7
 
       - name: Install dependencies
         run: |
           pip install numpy==1.26.4
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ccxt scikit-learn requests huggingface_hub pandas-ta-classic
+          pip install scikit-learn requests huggingface_hub pandas-ta-classic
 
-      - name: Run OMEGA signal generator
+      - name: Run OMEGA v7 signal generator
         env:
-          POLYGON_KEY:          ${{ secrets.POLYGON_KEY }}
-          HF_TOKEN:             ${{ secrets.HF_TOKEN }}
+          HF_TOKEN:              ${{ secrets.HF_TOKEN }}
           DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
-        run: python omega/run.py
+        run: python omega_v7/run.py
 
       - name: Commit updated logs
         run: |
-          git config user.name  "OMEGA Bot"
-          git config user.email "omega@noreply.github.com"
-          git add signals_log.csv entry_prices.json || true
-          git diff --staged --quiet || git commit -m "📡 Signals $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git config user.name  "OMEGA v7 Bot"
+          git config user.email "omega-v7@noreply.github.com"
+          git add omega_v7_signals_log.csv omega_v7_entry_prices.json || true
+          git diff --staged --quiet || git commit -m "📡 v7 Signals $(date -u '+%Y-%m-%d %H:%M') UTC"
           git push
