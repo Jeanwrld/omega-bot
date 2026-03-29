@@ -35,8 +35,9 @@ warnings.filterwarnings("ignore")
 # ── Constants ────────────────────────────────────────────────────────────────
 HF_REPO         = "sato2ru/omega-v7"
 DISCORD_WEBHOOK = os.environ["DISCORD_WEBHOOK_FOREX"]
-LOG_FILE        = "omega_v7_signals_log.csv"
-ENTRY_LOG_FILE  = "omega_v7_entry_prices.json"
+LOG_FILE         = "omega_v7_signals_log.csv"      # resolved outcomes (appended on resolution)
+SIGNALS_LOG_FILE = "omega_v7_all_signals.csv"      # every signal every run (appended always)
+ENTRY_LOG_FILE   = "omega_v7_entry_prices.json"
 
 CFG = {
     "symbols":        ["BTC", "ETH", "SOL", "XRP", "ADA"],
@@ -426,6 +427,7 @@ def check_outcomes(current_prices: dict) -> list:
                 )
                 resolved.append(e)
             else:
+                print(f"  ⚠️  {e['symbol']}: price not available — deferring resolution")
                 remaining.append(e)
         else:
             remaining.append(e)
@@ -452,6 +454,43 @@ def check_outcomes(current_prices: dict) -> list:
         json.dump(remaining, f, indent=2)
 
     return resolved
+
+
+# ── Signal logger (every run) ────────────────────────────────────────────────
+def log_all_signals(signals: list) -> None:
+    """
+    Append every signal (BUY / SELL / HOLD) to SIGNALS_LOG_FILE on every run.
+    This gives a complete audit trail independent of outcome resolution.
+    """
+    if not signals:
+        return
+
+    rows = [
+        {
+            "datetime_utc": s["datetime_utc"],
+            "symbol":       s["symbol"],
+            "action":       s["action"],
+            "direction":    s["direction"],
+            "prob_up":      round(s["prob_up"],    4),
+            "prob_down":    round(s["prob_down"],  4),
+            "confidence":   round(s["confidence"], 4),
+            "kelly_f":      round(s["kelly_f"],    4),
+            "alloc_usd":    round(s["alloc_usd"],  4),
+            "price":        s["price"],
+        }
+        for s in signals
+    ]
+
+    df_new   = pd.DataFrame(rows)
+    log_path = Path(SIGNALS_LOG_FILE)
+
+    if log_path.exists():
+        df_out = pd.concat([pd.read_csv(log_path), df_new], ignore_index=True)
+    else:
+        df_out = df_new
+
+    df_out.to_csv(log_path, index=False)
+    print(f"📋 Logged {len(rows)} signals → {SIGNALS_LOG_FILE}")
 
 
 # ── Discord notification ──────────────────────────────────────────────────────
@@ -575,6 +614,9 @@ def main() -> None:
     # ── Resolve 3h-old entries ────────────────────────────────────────────
     resolved = check_outcomes(current_prices)
 
+    # ── Log every signal (BUY / SELL / HOLD) ─────────────────────────────
+    log_all_signals(signals)
+
     # ── Print table ───────────────────────────────────────────────────────
     action_icons = {"BUY": "🟢", "SELL": "🔴", "HOLD": "⏸️ "}
     print(
@@ -616,8 +658,7 @@ def main() -> None:
         }
         for s in actionable
     ]
-    with open(ENTRY_LOG_FILE, "w") as f:
-        json.dump(existing + new_entries, f, indent=2)
+    Path(ENTRY_LOG_FILE).write_text(json.dumps(existing + new_entries, indent=2))
     if new_entries:
         print(
             f"  📝 Logged {len(new_entries)} entry prices → "
