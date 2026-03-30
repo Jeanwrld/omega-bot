@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "symbol": "BTC/USDT",
+    "action": "SELL",
+    "entry_price": 66638.33,
+    "alloc_usd": 2.8705358505249023,
+    "confidence": 0.6148214340209961,
+    "ts": 1774904521.281843,
+    "datetime_utc": "2026-03-30 21:02"
+  }
+]
