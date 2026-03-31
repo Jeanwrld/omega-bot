@@ -2,19 +2,19 @@
   {
     "symbol": "BTC/USDT",
     "action": "BUY",
-    "entry_price": 67141.41,
-    "alloc_usd": 3.669336438179016,
-    "confidence": 0.6467734575271606,
-    "ts": 1774970530.906215,
-    "datetime_utc": "2026-03-31 15:22"
-  },
-  {
-    "symbol": "BTC/USDT",
-    "action": "BUY",
     "entry_price": 68074.16,
     "alloc_usd": 2.819754183292389,
     "confidence": 0.6127901673316956,
     "ts": 1774977205.422042,
     "datetime_utc": "2026-03-31 17:13"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "action": "BUY",
+    "entry_price": 67940.38,
+    "alloc_usd": 3.3599093556404114,
+    "confidence": 0.6343963742256165,
+    "ts": 1774984748.310176,
+    "datetime_utc": "2026-03-31 19:19"
   }
 ]
