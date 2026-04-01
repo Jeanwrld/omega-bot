@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "symbol": "ADA/USDT",
+    "action": "SELL",
+    "entry_price": 0.2484,
+    "alloc_usd": 2.837686240673065,
+    "confidence": 0.6135074496269226,
+    "ts": 1775058055.649317,
+    "datetime_utc": "2026-04-01 15:40"
+  }
+]
