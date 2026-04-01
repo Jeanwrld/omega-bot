@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "symbol": "BTC/USDT",
+    "action": "SELL",
+    "entry_price": 68719.88,
+    "alloc_usd": 2.5926604866981506,
+    "confidence": 0.603706419467926,
+    "ts": 1775030007.888256,
+    "datetime_utc": "2026-04-01 07:53"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "action": "SELL",
+    "entry_price": 83.92,
+    "alloc_usd": 2.833797037601471,
+    "confidence": 0.6133518815040588,
+    "ts": 1775030007.888256,
+    "datetime_utc": "2026-04-01 07:53"
+  }
+]
