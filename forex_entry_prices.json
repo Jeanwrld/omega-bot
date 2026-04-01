@@ -1,15 +1,15 @@
 {
-  "GBPJPY_20260401_2253": {
-    "pair": "GBP/JPY",
-    "signal": "SELL",
-    "prob_up": 0.4089,
-    "prob_down": 0.5911,
-    "confidence": 0.5911,
-    "entry_price": 211.08462,
-    "datetime": "2026-04-01 22:00",
+  "USDJPY_20260401_2348": {
+    "pair": "USD/JPY",
+    "signal": "BUY",
+    "prob_up": 0.5799,
+    "prob_down": 0.4201,
+    "confidence": 0.5799,
+    "entry_price": 158.65463,
+    "datetime": "2026-04-01 23:00",
     "threshold": 0.57,
-    "regime": "LV-TREND",
-    "size": 0.0881,
-    "atr_raw": 0.27356647220057057
+    "regime": "HV-TREND",
+    "size": 0.0761,
+    "atr_raw": 0.21889144435947963
   }
 }
