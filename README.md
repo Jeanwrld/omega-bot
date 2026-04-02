@@ -104,19 +104,18 @@ All evaluation is done on a **strictly chronological held-out test set** — no 
 │       ├── omega-forex-signals.yml      # OMEGA Forex v3 — runs at :05 every hour
 │       └── omega-v7-signals.yml         # OMEGA v7 — runs at :10 every hour
 ├── omega/
-│   └── run.py                           # v3 inference + outcome tracking
+│   └── README.md                        # Inference logic in private module
 ├── omega_forex/
-│   └── run.py                           # Forex v3 inference + outcome tracking
+│   └── README.md                        # Inference logic in private module
 ├── omega_v7/
-│   └── run.py                           # v7 inference + outcome tracking
+│   └── README.md                        # Inference logic in private module
 ├── signals_log.csv                      # v3 resolved outcomes
-├── entry_prices.json                    # v3 open positions
 ├── forex_signals_log.csv                # Forex resolved outcomes
-├── forex_entry_prices.json              # Forex open positions
 ├── omega_v7_signals_log.csv             # v7 resolved outcomes (3h)
-├── omega_v7_all_signals.csv             # v7 all signals audit trail
-└── omega_v7_entry_prices.json           # v7 open positions
+└── omega_v7_all_signals.csv             # v7 all signals audit trail
 ```
+
+> Inference logic (`run.py` files) lives in a private repository (`omega-core`) and is checked out at runtime by each workflow. Open positions are tracked in a private GitHub Gist — never committed to this repo.
 
 ---
 
@@ -131,10 +130,10 @@ Every hour:
   5. Run model → softmax probabilities
   6. Apply confidence threshold → BUY / SELL / HOLD
   7. Size position via half-Kelly (capped at 20%)
-  8. Log entry prices for actionable signals
+  8. Save entry prices to private Gist (open positions never public)
   9. Resolve outcomes from prior signals → write to CSV
  10. Post signal table + outcomes to Discord
- 11. Commit updated logs to repo
+ 11. Commit resolved logs to repo
 ```
 
 v3 and Forex resolve after **1h**. v7 resolves after **3h**.
@@ -144,17 +143,22 @@ v3 and Forex resolve after **1h**. v7 resolves after **3h**.
 ## Setup
 
 ### Prerequisites
-- GitHub repository (private recommended)
+- GitHub repository (this repo — public)
+- Private repository for inference core (`omega-core`)
 - HuggingFace account with private model repos
 - Twelve Data API key (Forex v3)
 - Polygon.io API key (v3 stocks)
 - Discord server with a webhook
+- Private GitHub Gist for open position tracking
 
 ### GitHub Secrets
 
 | Secret | Used by |
 |---|---|
 | `HF_TOKEN` | All models — downloads weights from HuggingFace |
+| `GH_CORE_TOKEN` | All workflows — checks out private `omega-core` repo |
+| `GIST_ID` | v7 — private Gist ID for open position tracking |
+| `GIST_TOKEN` | v7 — classic PAT with gist scope |
 | `POLYGON_KEY` | OMEGA v3 — stock data |
 | `TWELVE_DATA_API_KEY` | OMEGA Forex v3 — forex data |
 | `DISCORD_WEBHOOK_FOREX` | All models — Discord signals |
@@ -162,7 +166,7 @@ v3 and Forex resolve after **1h**. v7 resolves after **3h**.
 ### Workflow Permissions
 
 **Settings → Actions → General → Workflow permissions → Read and write**
-Required for the bot to commit log CSVs back to the repo.
+Required for the bot to commit resolved log CSVs back to the repo.
 
 ---
 
@@ -210,6 +214,7 @@ Actionable : 1/3   Deploy : $2.65 / $50.00
 - [ ] ForexFactory news masking (v8)
 - [ ] Extended seq_len=48 for longer-horizon pairs
 - [ ] BTC Standard Candle injection once lookahead risk resolved
+- [ ] Gist-based entry tracking for Forex open positions
 - [ ] Live execution via OANDA API (after sustained paper trading edge confirmed)
 
 ---
