@@ -45,6 +45,8 @@ jobs:
         env:
           HF_TOKEN:              ${{ secrets.HF_TOKEN }}
           DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+          GIST_ID:               ${{ secrets.GIST_ID }}
+          GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
         run: python core/omega_v7/run.py
 
       - name: Commit updated logs
