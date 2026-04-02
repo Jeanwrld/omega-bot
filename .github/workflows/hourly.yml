@@ -49,6 +49,9 @@ jobs:
           GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
         run: python core/omega_v7/run.py
 
+      - name: Cleanup private repo
+        run: rm -rf core
+
       - name: Commit updated logs
         run: |
           git config user.name  "OMEGA v7 Bot"

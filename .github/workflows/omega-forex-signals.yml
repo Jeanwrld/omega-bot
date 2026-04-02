@@ -47,6 +47,9 @@ jobs:
           HF_TOKEN:              ${{ secrets.HF_TOKEN }}
           DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
         run: python core/omega_forex/run.py
+      
+      - name: Cleanup private core
+        run: rm -rf core
 
       - name: Commit updated logs
         run: |
