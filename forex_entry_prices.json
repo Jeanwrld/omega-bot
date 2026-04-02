@@ -1,15 +1,1 @@
-{
-  "USDJPY_20260402_1510": {
-    "pair": "USD/JPY",
-    "signal": "BUY",
-    "prob_up": 0.595,
-    "prob_down": 0.405,
-    "confidence": 0.595,
-    "entry_price": 159.27628,
-    "datetime": "2026-04-02 15:00",
-    "threshold": 0.57,
-    "regime": "LV-TREND",
-    "size": 0.0,
-    "atr_raw": 0.1976115470028271
-  }
-}
+{}
