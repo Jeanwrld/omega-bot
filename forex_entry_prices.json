@@ -1,1 +1,15 @@
-{}
+{
+  "USDJPY_20260402_1910": {
+    "pair": "USD/JPY",
+    "signal": "SELL",
+    "prob_up": 0.3496,
+    "prob_down": 0.6504,
+    "confidence": 0.6504,
+    "entry_price": 159.56202,
+    "datetime": "2026-04-02 19:00",
+    "threshold": 0.57,
+    "regime": "LV-RANGE",
+    "size": 0.145,
+    "atr_raw": 0.17922351701543393
+  }
+}
