@@ -1,15 +1,1 @@
-{
-  "USDJPY_20260401_2348": {
-    "pair": "USD/JPY",
-    "signal": "BUY",
-    "prob_up": 0.5799,
-    "prob_down": 0.4201,
-    "confidence": 0.5799,
-    "entry_price": 158.65463,
-    "datetime": "2026-04-01 23:00",
-    "threshold": 0.57,
-    "regime": "HV-TREND",
-    "size": 0.0761,
-    "atr_raw": 0.21889144435947963
-  }
-}
+{}
