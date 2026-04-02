@@ -12,10 +12,17 @@ jobs:
       contents: write      # needed to commit log CSV + entry JSON back to repo
 
     steps:
-      - name: Checkout repo
+      - name: Checkout public repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Checkout private core
+        uses: actions/checkout@v4
+        with:
+          repository: Jeanwrld/omega-core
+          token: ${{ secrets.GH_CORE_TOKEN }}
+          path: core
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,17 +45,16 @@ jobs:
         env:
           HF_TOKEN:              ${{ secrets.HF_TOKEN }}
           DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
-        run: python omega_v7/run.py
+        run: python core/omega_v7/run.py
 
       - name: Commit updated logs
         run: |
-           git config user.name  "OMEGA v7 Bot"
-           git config user.email "omega-v7@noreply.github.com"
-           git stash --include-untracked
-           git pull --rebase
-           git stash pop || true
-           git add omega_v7_all_signals.csv   || true
-           git add omega_v7_entry_prices.json || true
-           git add omega_v7_signals_log.csv   || true
-           git diff --staged --quiet || (git commit -m "📡 v7 Signals $(date -u '+%Y-%m-%d %H:%M') UTC" && git push)
-
+          git config user.name  "OMEGA v7 Bot"
+          git config user.email "omega-v7@noreply.github.com"
+          git stash --include-untracked
+          git pull --rebase
+          git stash pop || true
+          git add omega_v7_all_signals.csv   || true
+          git add omega_v7_entry_prices.json || true
+          git add omega_v7_signals_log.csv   || true
+          git diff --staged --quiet || (git commit -m "📡 v7 Signals $(date -u '+%Y-%m-%d %H:%M') UTC" && git push)
