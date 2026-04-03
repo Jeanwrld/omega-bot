@@ -323,6 +323,7 @@ function normaliseV7(rows) {
     outcome:     r.correct      || '',     // WIN / LOSS
     pnl:         r.pnl          || '0',   // dollar P&L
     confidence:  r.confidence   || '0',
+    pnl_pct: String(parseFloat(r.pnl_pct || 0) / 100),
   }));
 }
 
@@ -479,13 +480,13 @@ async function loadData(csvUrl, prefix, normalise) {
 }
 
 // Initial load
-loadData(FOREX_CSV, 'forex', null);
+loadData(FOREX_CSV, 'forex', normaliseForex);
 loadData(V3_CSV,    'v3',    null);
 loadData(V7_CSV,    'v7',    normaliseV7);
 
 // Refresh every 5 min
 setInterval(() => {
-  loadData(FOREX_CSV, 'forex', null);
+  loadData(FOREX_CSV, 'forex', normaliseForex);
   loadData(V3_CSV,    'v3',    null);
   loadData(V7_CSV,    'v7',    normaliseV7);
 }, 5 * 60 * 1000);
