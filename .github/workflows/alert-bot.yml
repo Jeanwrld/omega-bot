@@ -1,0 +1,31 @@
+name: OMEGA Alert Bot
+
+on:
+  schedule:
+    - cron: '15 * * * *'  # every hour at :15 (after v7 at :10)
+  workflow_dispatch:
+
+jobs:
+  alert-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Run alert check
+        env:
+          DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+        run: python scripts/alert_bot.py

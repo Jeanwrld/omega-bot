@@ -323,7 +323,6 @@ function normaliseV7(rows) {
     outcome:     r.correct      || '',     // WIN / LOSS
     pnl:         r.pnl          || '0',   // dollar P&L
     confidence:  r.confidence   || '0',
-    
   }));
 }
 
@@ -483,6 +482,8 @@ async function loadData(csvUrl, prefix, normalise) {
 loadData(FOREX_CSV, 'forex', null);
 loadData(V3_CSV,    'v3',    null);
 loadData(V7_CSV,    'v7',    normaliseV7);
+
+
 
 // Refresh every 5 min
 setInterval(() => {

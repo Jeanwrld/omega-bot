@@ -1,0 +1,31 @@
+name: OMEGA Weekly Report
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # every Sunday at 00:00 UTC
+  workflow_dispatch:
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Run weekly report
+        env:
+          DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+        run: python scripts/weekly_report.py
