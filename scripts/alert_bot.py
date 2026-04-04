@@ -24,11 +24,13 @@ SOURCES = {
         "file":       "forex_signals_log.csv",
         "outcome_col":"outcome",
         "dt_col":     "datetime",
+        "gap_file":   "forex_signals_log.csv",
     },
     "v7 Crypto": {
         "file":       "omega_v7_signals_log.csv",
         "outcome_col":"correct",
         "dt_col":     "datetime_utc",
+        "gap_file":   "omega_v7_signals_log.csv",
     },
 }
 
@@ -84,8 +86,12 @@ def check_model(name: str, src: dict) -> list[str]:
         )
 
     # ── Signal gap check ──────────────────────────────────────────────────────
-    if not df.empty:
-        last_signal = df["_dt"].iloc[-1]
+    gap_df = load_csv(src["gap_file"])
+    gap_df["_dt"] = pd.to_datetime(gap_df[dt_col], errors="coerce")
+    gap_df = gap_df.dropna(subset=["_dt"])
+    
+    if not gap_df.empty:
+        last_signal = gap_df["_dt"].iloc[-1]
         now_utc     = pd.Timestamp.now(tz="UTC").tz_localize(None)
         gap_hours   = (now_utc - last_signal).total_seconds() / 3600
         if gap_hours > SIGNAL_GAP_HOURS:
