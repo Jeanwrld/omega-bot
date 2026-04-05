@@ -59,7 +59,7 @@ def compute_stats(df: pd.DataFrame, src: dict, days: int) -> dict | None:
     else:
         return None
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
     week   = df[df["_dt"] >= cutoff].copy()
 
     if week.empty:
