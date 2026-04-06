@@ -1,28 +1,28 @@
 {
-  "USDJPY_20260406_1915": {
+  "USDJPY_20260406_2051": {
     "pair": "USD/JPY",
     "signal": "SELL",
-    "prob_up": 0.3533,
-    "prob_down": 0.6467,
-    "confidence": 0.6467,
-    "entry_price": 159.70186,
-    "datetime": "2026-04-06 19:00",
+    "prob_up": 0.3831,
+    "prob_down": 0.6169,
+    "confidence": 0.6169,
+    "entry_price": 159.68851,
+    "datetime": "2026-04-06 20:00",
     "threshold": 0.57,
     "regime": "LV-RANGE",
-    "size": 0.1888,
-    "atr_raw": 0.12524353635203425
+    "size": 0.1835,
+    "atr_raw": 0.12309532457180954
   },
-  "GBPJPY_20260406_1915": {
+  "GBPJPY_20260406_2051": {
     "pair": "GBP/JPY",
     "signal": "SELL",
-    "prob_up": 0.3735,
-    "prob_down": 0.6265,
-    "confidence": 0.6265,
-    "entry_price": 211.39272,
-    "datetime": "2026-04-06 19:00",
+    "prob_up": 0.3779,
+    "prob_down": 0.6221,
+    "confidence": 0.6221,
+    "entry_price": 211.36355,
+    "datetime": "2026-04-06 20:00",
     "threshold": 0.54,
     "regime": "LV-TREND",
-    "size": 0.154,
-    "atr_raw": 0.17296191966964428
+    "size": 0.1429,
+    "atr_raw": 0.1682806090810029
   }
 }
