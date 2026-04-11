@@ -1,15 +1,15 @@
 {
-  "GBPJPY_20260410_2349": {
+  "GBPJPY_20260411_0315": {
     "pair": "GBP/JPY",
     "signal": "SELL",
-    "prob_up": 0.4534,
-    "prob_down": 0.5466,
-    "confidence": 0.5466,
-    "entry_price": 214.25223,
+    "prob_up": 0.4537,
+    "prob_down": 0.5463,
+    "confidence": 0.5463,
+    "entry_price": 214.24966,
     "datetime": "2026-04-10 23:00",
     "threshold": 0.54,
     "regime": "LV-TREND",
-    "size": 0.0795,
-    "atr_raw": 0.1703681181900329
+    "size": 0.0791,
+    "atr_raw": 0.1706131181900315
   }
 }
