@@ -60,6 +60,6 @@ jobs:
           git pull --rebase
           git stash pop || true
           git add omega_v7_all_signals.csv   || true
-          git add omega_v7_entry_prices.json || true
+          
           git add omega_v7_signals_log.csv   || true
           git diff --staged --quiet || (git commit -m "📡 v7 Signals $(date -u '+%Y-%m-%d %H:%M') UTC" && git push)
