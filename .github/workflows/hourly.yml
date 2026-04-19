@@ -11,6 +11,11 @@ jobs:
     container:
       image: ghcr.io/jeanwrld/omega-runner:latest
       options: --user root
+      env:
+        HF_TOKEN:              ${{ secrets.HF_TOKEN }}
+        DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+        GIST_ID:               ${{ secrets.GIST_ID }}
+        GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
     permissions:
       contents: write
 
@@ -31,11 +36,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Run OMEGA v7 signal generator
-        env:
-          HF_TOKEN:              ${{ secrets.HF_TOKEN }}
-          DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
-          GIST_ID:               ${{ secrets.GIST_ID }}
-          GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
+        
         run: python core/omega_v7/run.py
 
       - name: Cleanup private repo
