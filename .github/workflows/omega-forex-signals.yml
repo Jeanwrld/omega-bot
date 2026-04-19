@@ -10,14 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/jeanwrld/omega-runner:latest
+      options: --user root
     permissions:
       contents: write
 
-    env:
-      HF_TOKEN:              ${{ secrets.HF_TOKEN }}
-      DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
-      GIST_ID:               ${{ secrets.GIST_ID }}
-      GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
+                ${{ secrets.GIST_TOKEN }}
 
     steps:
       - name: Checkout public repo
@@ -31,6 +28,9 @@ jobs:
           repository: Jeanwrld/omega-core
           token: ${{ secrets.GH_CORE_TOKEN }}
           path: core
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Run OMEGA Forex signal generator
         env:
