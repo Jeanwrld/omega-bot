@@ -13,6 +13,12 @@ jobs:
     permissions:
       contents: write
 
+    env:
+      HF_TOKEN:              ${{ secrets.HF_TOKEN }}
+      DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+      GIST_ID:               ${{ secrets.GIST_ID }}
+      GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
+
     steps:
       - name: Checkout public repo
         uses: actions/checkout@v4
