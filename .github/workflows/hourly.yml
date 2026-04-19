@@ -9,7 +9,7 @@ jobs:
   run-signals:
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # needed to commit log CSV + entry JSON back to repo
+      contents: write      # needed to commit log CSV back to repo
 
     steps:
       - name: Checkout public repo
@@ -29,17 +29,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache pip
+      - name: Cache pip environment
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-omega-v7
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        run: |
-          pip install numpy==1.26.4
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install scikit-learn requests huggingface_hub pandas-ta-classic
+        run: pip install -r requirements.txt
 
       - name: Run OMEGA v7 signal generator
         env:
@@ -59,7 +58,6 @@ jobs:
           git stash --include-untracked
           git pull --rebase
           git stash pop || true
-          git add omega_v7_all_signals.csv   || true
-          
-          git add omega_v7_signals_log.csv   || true
+          git add omega_v7_all_signals.csv  || true
+          git add omega_v7_signals_log.csv  || true
           git diff --staged --quiet || (git commit -m "📡 v7 Signals $(date -u '+%Y-%m-%d %H:%M') UTC" && git push)

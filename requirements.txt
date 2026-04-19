@@ -1,6 +1,5 @@
-numpy==1.26.4
-pandas
-pandas_ta_classic
+torch --index-url https://download.pytorch.org/whl/cpu
 scikit-learn
 requests
 huggingface_hub
+pandas-ta-classic
