@@ -11,13 +11,14 @@ jobs:
     container:
       image: ghcr.io/jeanwrld/omega-runner:latest
       options: --user root
-      env:
-        HF_TOKEN:              ${{ secrets.HF_TOKEN }}
-        DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
-        GIST_ID:               ${{ secrets.GIST_ID }}
-        GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
     permissions:
       contents: write
+    env:
+      HF_TOKEN:              ${{ secrets.HF_TOKEN }}
+      DISCORD_WEBHOOK_FOREX: ${{ secrets.DISCORD_WEBHOOK_FOREX }}
+      GIST_ID:               ${{ secrets.GIST_ID }}
+      GIST_TOKEN:            ${{ secrets.GIST_TOKEN }}
+    
 
     steps:
       - name: Checkout public repo
