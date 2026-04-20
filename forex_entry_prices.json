@@ -12,17 +12,17 @@
     "size": 0.0395,
     "atr_raw": 0.1706131181900315
   },
-  "USDJPY_20260420_2049": {
+  "USDJPY_20260420_2149": {
     "pair": "USD/JPY",
     "signal": "SELL",
-    "prob_up": 0.4248,
-    "prob_down": 0.5752,
-    "confidence": 0.5752,
-    "entry_price": 158.89442,
-    "datetime": "2026-04-20 20:00",
+    "prob_up": 0.401,
+    "prob_down": 0.599,
+    "confidence": 0.599,
+    "entry_price": 158.80094,
+    "datetime": "2026-04-20 21:00",
     "threshold": 0.57,
     "regime": "HV-TREND",
-    "size": 0.0588,
-    "atr_raw": 0.19504166819275373
+    "size": 0.0608,
+    "atr_raw": 0.18722481434215926
   }
 }
