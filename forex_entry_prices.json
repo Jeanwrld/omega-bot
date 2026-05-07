@@ -11,5 +11,18 @@
     "regime": "LV-TREND",
     "size": 0.0395,
     "atr_raw": 0.1706131181900315
+  },
+  "USDJPY_20260507_2015": {
+    "pair": "USD/JPY",
+    "signal": "SELL",
+    "prob_up": 0.3926,
+    "prob_down": 0.6074,
+    "confidence": 0.6074,
+    "entry_price": 156.83597,
+    "datetime": "2026-05-07 20:00",
+    "threshold": 0.57,
+    "regime": "LV-TREND",
+    "size": 0.1929,
+    "atr_raw": 0.19714589201558474
   }
 }
