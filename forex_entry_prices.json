@@ -12,17 +12,17 @@
     "size": 0.0395,
     "atr_raw": 0.1706131181900315
   },
-  "USDJPY_20260828_2107": {
+  "USDJPY_20260829_0332": {
     "pair": "USD/JPY",
     "signal": "SELL",
-    "prob_up": 0.4269,
-    "prob_down": 0.5731,
-    "confidence": 0.5731,
-    "entry_price": 160.05485,
-    "datetime": "2026-08-28 21:00",
+    "prob_up": 0.4093,
+    "prob_down": 0.5907,
+    "confidence": 0.5907,
+    "entry_price": 160.06644,
+    "datetime": "2026-08-28 23:00",
     "threshold": 0.57,
     "regime": "LV-TREND",
-    "size": 0.0804,
-    "atr_raw": 0.11600037227125655
+    "size": 0.118,
+    "atr_raw": 0.14041763148461867
   }
 }
